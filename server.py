@@ -11,7 +11,7 @@ from flask import (
 
 app = Flask(__name__)
 
-DOWNLOAD_URL = "https://focus-mater-1.onrender.com/download/FocusMaster.exe"
+DOWNLOAD_URL = "https://github.com/kiratripathi1011-ui/Focus-Mater/releases/download/v1.0.0/FocusMaster.exe"
 
 users_db = {}
 
