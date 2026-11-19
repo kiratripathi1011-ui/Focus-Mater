@@ -1,10 +1,12 @@
+import os
 import time
 from flask import Flask, jsonify, render_template_string, request
 
 app = Flask(__name__)
 
-ADMIN_ID = "Kira"
-ADMIN_PASS = "Kali"
+# Load credentials from Render Environment Variables (with local fallback defaults)
+ADMIN_ID = os.environ.get("ADMIN_ID", "Kira")
+ADMIN_PASS = os.environ.get("ADMIN_PASS", "Kali")
 
 DOWNLOAD_URL = (
     "https://github.com/kiratripathi1011-ui/Focus-Mater/releases/download/v1.0.0/FocusMaster.exe"
@@ -155,7 +157,7 @@ ADMIN_HTML = """
   <h1>Focus Master — Admin Telemetry</h1>
   <div id="login" class="login-box">
     <h3>Admin Sign In</h3>
-    <input id="uid" placeholder="Admin ID" value="Kira" />
+    <input id="uid" placeholder="Admin ID" />
     <input id="pwd" type="password" placeholder="Password" />
     <button onclick="login()">Login</button>
   </div>
