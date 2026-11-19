@@ -1,4 +1,3 @@
-import os
 import time
 from flask import (
     Flask,
@@ -6,12 +5,16 @@ from flask import (
     jsonify,
     render_template_string,
     request,
-    send_from_directory,
+    stream_with_context,
 )
+import requests
 
 app = Flask(__name__)
 
-DOWNLOAD_URL = "https://github.com/kiratripathi1011-ui/Focus-Mater/releases/download/v1.0.0/FocusMaster.exe"
+GITHUB_RELEASE_EXE_URL = (
+    "https://github.com/kiratripathi1011-ui/Focus-Mater/releases/download/v1.0.0/FocusMaster.exe"
+)
+DOWNLOAD_URL = "https://focus-mater-1.onrender.com/download/FocusMaster.exe"
 
 users_db = {}
 
@@ -48,13 +51,24 @@ def ensure_user(ip):
 
 @app.route("/download/FocusMaster.exe")
 def download_exe():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    return send_from_directory(
-        base_dir,
-        "FocusMaster.exe",
-        as_attachment=True,
-        mimetype="application/octet-stream",
-    )
+    try:
+        upstream = requests.get(GITHUB_RELEASE_EXE_URL, stream=True, timeout=60)
+        upstream.raise_for_status()
+
+        headers = {
+            "Content-Disposition": 'attachment; filename="FocusMaster.exe"',
+            "Content-Type": "application/octet-stream",
+        }
+        if "Content-Length" in upstream.headers:
+            headers["Content-Length"] = upstream.headers["Content-Length"]
+
+        return Response(
+            stream_with_context(upstream.iter_content(chunk_size=65536)),
+            status=200,
+            headers=headers,
+        )
+    except requests.RequestException as exc:
+        return jsonify({"error": "Failed to fetch release binary", "details": str(exc)}), 502
 
 
 @app.route("/google088ad576209b6a72.html")
