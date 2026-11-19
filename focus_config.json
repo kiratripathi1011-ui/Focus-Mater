@@ -1,0 +1,16 @@
+{
+  "allowed_sites": [
+    "pw.live"
+  ],
+  "allowed_apps": [
+    "chrome.exe",
+    "msedge.exe",
+    "brave.exe",
+    "firefox.exe",
+    "firefox",
+    "google-chrome",
+    "acrobat.exe",
+    "sumatrapdf.exe",
+    "notepad.exe"
+  ]
+}

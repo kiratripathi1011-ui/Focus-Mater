@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.spec
+focus_master_stats.json
+focus_master_config.json
+.env
