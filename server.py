@@ -1,6 +1,6 @@
 import os
 import time
-from flask import Flask, jsonify, render_template_string, request
+from flask import Flask, Response, jsonify, render_template_string, request
 
 app = Flask(__name__)
 
@@ -44,6 +44,43 @@ def ensure_user(ip):
         }
     users_db[ip]["last_seen"] = time.time()
     return users_db[ip]
+
+
+@app.route("/google088ad576209b6a72.html")
+def google_verification():
+    return (
+        "google-site-verification: google088ad576209b6a72.html",
+        200,
+        {"Content-Type": "text/html; charset=UTF-8"},
+    )
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    base_url = request.url_root.rstrip("/")
+    content = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin\n"
+        "Disallow: /api/\n"
+        f"Sitemap: {base_url}/sitemap.xml\n"
+    )
+    return Response(content, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    base_url = request.url_root.rstrip("/")
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        "  <url>\n"
+        f"    <loc>{base_url}/</loc>\n"
+        "    <priority>1.0</priority>\n"
+        "  </url>\n"
+        "</urlset>\n"
+    )
+    return Response(xml, mimetype="application/xml")
 
 
 @app.route("/api/auth/admin", methods=["POST"])
@@ -245,6 +282,7 @@ HOME_HTML = f"""
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Focus Master PC — Study lockdown app for Windows that blocks distracting websites and apps while tracking real study hours." />
   <title>Focus Master — Study Lockdown & Focus Tracker</title>
   <style>
     body {{
