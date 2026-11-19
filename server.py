@@ -4,7 +4,6 @@ from flask import Flask, Response, jsonify, render_template_string, request
 
 app = Flask(__name__)
 
-# Load credentials from Render Environment Variables (with local fallback defaults)
 ADMIN_ID = os.environ.get("ADMIN_ID", "Kira")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "Kali")
 
@@ -12,7 +11,6 @@ DOWNLOAD_URL = (
     "https://github.com/kiratripathi1011-ui/Focus-Mater/releases/download/v1.0.0/FocusMaster.exe"
 )
 
-# In-memory store keyed by client IP address
 users_db = {}
 
 
@@ -27,7 +25,7 @@ def ensure_user(ip):
     if ip not in users_db:
         users_db[ip] = {
             "ip": ip,
-            "status": "PAUSED",  # STUDYING | PAUSED | IDLE
+            "status": "PAUSED",
             "study_seconds": 0,
             "break_seconds": 0,
             "last_seen": time.time(),
@@ -39,8 +37,8 @@ def ensure_user(ip):
                 "firefox",
                 "google-chrome",
             ],
-            "cooked_sites": [],  # list of {domain, count, last_time}
-            "remote_command": None,  # None | "PAUSE" | "RESUME"
+            "cooked_sites": [],
+            "remote_command": None,
         }
     users_db[ip]["last_seen"] = time.time()
     return users_db[ip]
@@ -109,7 +107,7 @@ def heartbeat():
         user["allowed_apps"] = data["allowed_apps"]
 
     cmd = user.get("remote_command")
-    user["remote_command"] = None  # consume once delivered
+    user["remote_command"] = None
 
     return jsonify(
         {
@@ -163,7 +161,7 @@ def admin_control():
         return jsonify({"ok": False, "error": "Unauthorized"}), 401
 
     target_ip = data.get("ip")
-    action = data.get("action")  # "PAUSE" or "RESUME"
+    action = data.get("action")
     if target_ip in users_db and action in ("PAUSE", "RESUME"):
         users_db[target_ip]["remote_command"] = action
         return jsonify({"ok": True})
@@ -276,6 +274,49 @@ def admin_page():
     return render_template_string(ADMIN_HTML)
 
 
+PRIVACY_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Focus Master</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 32px; line-height: 1.6; }
+    .box { max-width: 720px; margin: 0 auto; background: #1e293b; padding: 28px; border-radius: 12px; }
+    h1, h2 { color: #38bdf8; }
+    a { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Privacy Policy — Focus Master</h1>
+    <p><b>Last updated:</b> November 19, 2026</p>
+    <p>Focus Master is a study focus and distraction-blocking app for Windows.</p>
+    <h2>1. Information We Collect</h2>
+    <ul>
+      <li><b>Session &amp; Focus Telemetry:</b> Study time, break time, current state, and allowlists.</li>
+      <li><b>Blocked Site Logs:</b> Distracting domains blocked during sessions and attempt counts.</li>
+      <li><b>Network Info:</b> IP address used for session sync and remote pause/resume commands.</li>
+    </ul>
+    <h2>2. How We Use Information</h2>
+    <p>Used only to run focus timers, enforce distraction limits, and show live session telemetry.</p>
+    <h2>3. Data Sharing</h2>
+    <p>We do not sell user data to third parties.</p>
+    <h2>4. Contact</h2>
+    <p>GitHub: <a href="https://github.com/kiratripathi1011-ui/Focus-Mater">github.com/kiratripathi1011-ui/Focus-Mater</a></p>
+    <p><a href="/">← Back to Home</a></p>
+  </div>
+</body>
+</html>
+"""
+
+
+@app.route("/privacy")
+def privacy_page():
+    return render_template_string(PRIVACY_HTML)
+
+
 HOME_HTML = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -332,12 +373,14 @@ HOME_HTML = f"""
       font-size: 0.82rem;
       color: #94a3b8;
     }}
-    .admin-link {{
-      display: block;
+    .links {{
       margin-top: 22px;
-      color: #38bdf8;
       font-size: 0.9rem;
+    }}
+    .links a {{
+      color: #38bdf8;
       text-decoration: none;
+      margin: 0 10px;
     }}
   </style>
 </head>
@@ -354,7 +397,10 @@ HOME_HTML = f"""
     <div class="note">
       <b>First-time Windows tip:</b> If Windows SmartScreen appears, click <i>More info → Run anyway</i>.
     </div>
-    <a class="admin-link" href="/admin">Admin Dashboard Login →</a>
+    <div class="links">
+      <a href="/admin">Admin Dashboard →</a>
+      <a href="/privacy">Privacy Policy</a>
+    </div>
   </div>
 </body>
 </html>
