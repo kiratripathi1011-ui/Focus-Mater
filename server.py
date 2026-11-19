@@ -1,11 +1,17 @@
+import os
 import time
-from flask import Flask, Response, jsonify, render_template_string, request
+from flask import (
+    Flask,
+    Response,
+    jsonify,
+    render_template_string,
+    request,
+    send_from_directory,
+)
 
 app = Flask(__name__)
 
-DOWNLOAD_URL = (
-    "https://github.com/kiratripathi1011-ui/Focus-Mater/releases/download/v1.0.0/FocusMaster.exe"
-)
+DOWNLOAD_URL = "https://focus-mater-1.onrender.com/download/FocusMaster.exe"
 
 users_db = {}
 
@@ -38,6 +44,17 @@ def ensure_user(ip):
         }
     users_db[ip]["last_seen"] = time.time()
     return users_db[ip]
+
+
+@app.route("/download/FocusMaster.exe")
+def download_exe():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(
+        base_dir,
+        "FocusMaster.exe",
+        as_attachment=True,
+        mimetype="application/octet-stream",
+    )
 
 
 @app.route("/google088ad576209b6a72.html")
