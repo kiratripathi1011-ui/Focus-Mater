@@ -6,8 +6,11 @@ app = Flask(__name__)
 ADMIN_ID = "Kira"
 ADMIN_PASS = "Kali"
 
+DOWNLOAD_URL = (
+    "https://github.com/kiratripathi1011-ui/Focus-Mater/releases/download/v1.0.0/FocusMaster.exe"
+)
+
 # In-memory store keyed by client IP address
-# Structure: ip -> dict of telemetry & rules
 users_db = {}
 
 
@@ -22,14 +25,20 @@ def ensure_user(ip):
     if ip not in users_db:
         users_db[ip] = {
             "ip": ip,
-            "status": "PAUSED",          # STUDYING | PAUSED | BREAK
+            "status": "PAUSED",  # STUDYING | PAUSED | IDLE
             "study_seconds": 0,
             "break_seconds": 0,
             "last_seen": time.time(),
             "allowed_sites": ["pw.live", "penpencil.co", "cloudfront.net"],
-            "allowed_apps": ["chrome.exe", "msedge.exe", "code.exe", "firefox", "google-chrome"],
-            "cooked_sites": [],          # list of {domain, count, last_time}
-            "remote_command": None,      # None | "PAUSE" | "RESUME"
+            "allowed_apps": [
+                "chrome.exe",
+                "msedge.exe",
+                "code.exe",
+                "firefox",
+                "google-chrome",
+            ],
+            "cooked_sites": [],  # list of {domain, count, last_time}
+            "remote_command": None,  # None | "PAUSE" | "RESUME"
         }
     users_db[ip]["last_seen"] = time.time()
     return users_db[ip]
@@ -63,13 +72,15 @@ def heartbeat():
     cmd = user.get("remote_command")
     user["remote_command"] = None  # consume once delivered
 
-    return jsonify({
-        "ok": True,
-        "ip": ip,
-        "command": cmd,
-        "allowed_sites": user["allowed_sites"],
-        "allowed_apps": user["allowed_apps"],
-    })
+    return jsonify(
+        {
+            "ok": True,
+            "ip": ip,
+            "command": cmd,
+            "allowed_sites": user["allowed_sites"],
+            "allowed_apps": user["allowed_apps"],
+        }
+    )
 
 
 @app.route("/api/cooked", methods=["POST"])
@@ -224,6 +235,95 @@ ADMIN_HTML = """
 @app.route("/admin")
 def admin_page():
     return render_template_string(ADMIN_HTML)
+
+
+HOME_HTML = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Master — Study Lockdown & Focus Tracker</title>
+  <style>
+    body {{
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }}
+    .card {{
+      background: #1e293b;
+      max-width: 560px;
+      width: 90%;
+      padding: 36px;
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      text-align: center;
+    }}
+    h1 {{ color: #38bdf8; margin-bottom: 8px; font-size: 2rem; }}
+    p.sub {{ color: #94a3b8; margin-bottom: 24px; line-height: 1.5; }}
+    .features {{
+      text-align: left;
+      background: #0f172a;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 26px;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }}
+    .btn {{
+      display: inline-block;
+      background: #16a34a;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 14px 28px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }}
+    .btn:hover {{ background: #15803d; }}
+    .note {{
+      margin-top: 18px;
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }}
+    .admin-link {{
+      display: block;
+      margin-top: 22px;
+      color: #38bdf8;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Focus Master PC</h1>
+    <p class="sub">Block distracting sites and apps automatically while tracking your real study hours.</p>
+    <div class="features">
+      ✅ <b>Strict Allowlist Mode:</b> Only approved websites (like pw.live) and study apps stay open.<br/>
+      ⏱ <b>Live Stopwatch & Pause:</b> Tracks study hours from 00:00:00 with an urgent-task Pause button.<br/>
+      📊 <b>Real-Time Sync:</b> Automatically logs study time, break time, and blocked attempts.
+    </div>
+    <a class="btn" href="{DOWNLOAD_URL}">⬇ Download FocusMaster.exe (Windows)</a>
+    <div class="note">
+      <b>First-time Windows tip:</b> If Windows SmartScreen appears, click <i>More info → Run anyway</i>.
+    </div>
+    <a class="admin-link" href="/admin">Admin Dashboard Login →</a>
+  </div>
+</body>
+</html>
+"""
+
+
+@app.route("/")
+def home_page():
+    return render_template_string(HOME_HTML)
 
 
 if __name__ == "__main__":
